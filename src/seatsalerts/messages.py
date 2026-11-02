@@ -136,8 +136,7 @@ def _economy_digest(items: list[Change], cfg: Config, balances: dict[str, int]) 
                      f'{v.miles:,} on {_program(s.program)}{nonstop}{tax}')
     if len(items) > len(top):
         lines.append(f"and {len(items) - len(top)} more above {top[-1].verdict.miles:,} miles")
-    return "
-".join(lines)
+    return "\n".join(lines)
 
 
 def format_changes(changes: Changes, trips_by_id: dict[str, dict], cfg: Config,

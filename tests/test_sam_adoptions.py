@@ -133,7 +133,6 @@ def test_economy_digest_top_five_in_one_block():
 def test_economy_gone_is_silent_and_premium_blocks_stay_full():
     gone = econ(1, 30000)
     premium = change("aeroplan")
-    text = "
-".join(format_changes(Changes(new=[premium, econ(2, 30000)], gone=[gone]), {}, CFG, {}))
+    text = "\n".join(format_changes(Changes(new=[premium, econ(2, 30000)], gone=[gone]), {}, CFG, {}))
     assert "Gone" not in text
     assert "New: SGN to SFO" in text and "Economy: 1 date(s)" in text
