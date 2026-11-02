@@ -112,3 +112,7 @@ transfer_map:
   eurobonus: [capitalone, amex]
   velocity: [amex, capitalone]
   lufthansa: []
+  jal: [bilt, capitalone]
+  asiamiles: [amex, bilt, capitalone]
+  british: [amex, chase, bilt, capitalone]
+  iberia: [amex, chase, bilt, capitalone]
