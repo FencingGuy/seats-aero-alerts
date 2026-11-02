@@ -21,6 +21,7 @@ def main() -> int:
     mode.add_argument("--sample", action="store_true", help="print one raw API record and exit")
     ap.add_argument("--minutes", type=int, default=58)
     ap.add_argument("--dry-run", action="store_true", help="log instead of sending to Telegram")
+    ap.add_argument("--hello", action="store_true", help="send a test message first to prove Telegram works")
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--state", default=os.path.join("state", "state.json"))
     args = ap.parse_args()
@@ -44,6 +45,9 @@ def main() -> int:
                     dry_run=args.dry_run, state_path=args.state)
     if args.sample:
         return poller.sample()
+    if args.hello:
+        ok = poller._send("Hello from the award watcher. Telegram is wired up correctly.")
+        logging.getLogger("seatsalerts").info("hello message %s", "sent" if ok else "FAILED")
     if args.once:
         poller.run_once()
     else:
