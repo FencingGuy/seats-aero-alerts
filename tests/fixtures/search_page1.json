@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "ID": "avail-aeroplan-sgn-lax-0107",
+      "RouteID": "route-1",
+      "Route": {"OriginAirport": "SGN", "OriginRegion": "Asia", "DestinationAirport": "LAX", "DestinationRegion": "North America", "NumDaysOut": 67, "Distance": 8150, "Source": "aeroplan"},
+      "Date": "2027-01-07",
+      "ParsedDate": "2027-01-07T00:00:00Z",
+      "YAvailable": true, "WAvailable": false, "JAvailable": true, "FAvailable": false,
+      "YMileageCost": "42000", "WMileageCost": "0", "JMileageCost": "95000", "FMileageCost": "0",
+      "YRemainingSeats": 5, "WRemainingSeats": 0, "JRemainingSeats": 4, "FRemainingSeats": 0,
+      "YAirlines": "SQ, AC", "WAirlines": "", "JAirlines": "SQ, AC", "FAirlines": "",
+      "YDirect": false, "WDirect": false, "JDirect": false, "FDirect": false,
+      "Source": "aeroplan",
+      "CreatedAt": "2026-11-01T10:00:00Z", "UpdatedAt": "2026-11-01T10:00:00Z",
+      "AvailabilityTrips": null
+    }
+  ],
+  "count": 2,
+  "hasMore": true,
+  "cursor": "page2cursor"
+}

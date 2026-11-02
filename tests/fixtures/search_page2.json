@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "ID": "avail-united-han-sfo-0111",
+      "RouteID": "route-2",
+      "Route": {"OriginAirport": "HAN", "OriginRegion": "Asia", "DestinationAirport": "SFO", "DestinationRegion": "North America", "NumDaysOut": 71, "Distance": 7800, "Source": "united"},
+      "Date": "2027-01-11",
+      "ParsedDate": "2027-01-11T00:00:00Z",
+      "YAvailable": true, "WAvailable": false, "JAvailable": true, "FAvailable": false,
+      "YMileageCost": "60000", "WMileageCost": "0", "JMileageCost": "360000", "FMileageCost": "0",
+      "YRemainingSeats": 0, "WRemainingSeats": 0, "JRemainingSeats": 0, "FRemainingSeats": 0,
+      "YAirlines": "SQ, UA", "WAirlines": "", "JAirlines": "SQ, UA", "FAirlines": "",
+      "YDirect": false, "WDirect": false, "JDirect": false, "FDirect": false,
+      "Source": "united",
+      "CreatedAt": "2026-11-01T10:00:00Z", "UpdatedAt": "2026-11-01T10:00:00Z",
+      "AvailabilityTrips": null
+    }
+  ],
+  "count": 2,
+  "hasMore": false,
+  "cursor": ""
+}

@@ -1,0 +1,55 @@
+name: Poll seats.aero
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "How long to keep polling (minutes)"
+        default: "58"
+      dry_run:
+        description: "Log only, send nothing to Telegram"
+        type: boolean
+        default: false
+
+concurrency:
+  group: poller
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore state from the previous run
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: poller-state-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: poller-state-
+
+      - run: pip install -r requirements.txt
+
+      - name: Poll
+        env:
+          SEATS_AERO_API_KEY: ${{ secrets.SEATS_AERO_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          POINTS_BALANCES: ${{ secrets.POINTS_BALANCES }}
+        run: |
+          python poller.py --loop --minutes "${{ github.event.inputs.minutes || '58' }}" \
+            ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+
+      - name: Save state for the next run
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: poller-state-${{ github.run_id }}-${{ github.run_attempt }}

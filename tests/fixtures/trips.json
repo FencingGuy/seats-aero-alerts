@@ -1,0 +1,34 @@
+{
+  "data": [
+    {
+      "ID": "trip-1",
+      "RouteID": "route-1",
+      "AvailabilityID": "avail-aeroplan-sgn-lax-0107",
+      "FlightNumbers": "SQ185, AC20, UA698",
+      "Carriers": "SQ, AC, UA",
+      "AvailabilitySegments": [
+        {"FlightNumber": "SQ185", "Distance": 680, "FareClass": "I", "AircraftName": "Boeing 787", "AircraftCode": "787", "OriginAirport": "SGN", "DestinationAirport": "SIN", "DepartsAt": "2027-01-07T19:55:00", "ArrivesAt": "2027-01-07T22:55:00", "Source": "aeroplan", "Order": 0},
+        {"FlightNumber": "AC20", "Distance": 8050, "FareClass": "I", "AircraftName": "Boeing 787-9", "AircraftCode": "789", "OriginAirport": "SIN", "DestinationAirport": "YVR", "DepartsAt": "2027-01-08T01:30:00", "ArrivesAt": "2027-01-07T21:00:00", "Source": "aeroplan", "Order": 1},
+        {"FlightNumber": "UA698", "Distance": 1100, "FareClass": "Y", "AircraftName": "Boeing 737-900", "AircraftCode": "739", "OriginAirport": "YVR", "DestinationAirport": "LAX", "DepartsAt": "2027-01-08T15:00:00", "ArrivesAt": "2027-01-08T18:10:00", "Source": "aeroplan", "Order": 2}
+      ],
+      "DepartsAt": "2027-01-07T19:55:00",
+      "ArrivesAt": "2027-01-08T18:10:00",
+      "TotalDuration": 2235,
+      "Stops": 2,
+      "Cabin": "business",
+      "RemainingSeats": 4,
+      "MileageCost": 95000,
+      "AllianceCost": 95000,
+      "TotalTaxes": 14490,
+      "TaxesCurrency": "CAD",
+      "TaxesCurrencySymbol": "$",
+      "MixedCabinPct": 12,
+      "Source": "aeroplan",
+      "CreatedAt": "2026-11-01T10:00:00Z",
+      "UpdatedAt": "2026-11-01T10:00:00Z"
+    }
+  ],
+  "origin_coordinates": {"Lat": 10.8, "Lon": 106.6},
+  "destination_coordinates": {"Lat": 33.9, "Lon": -118.4},
+  "booking_links": [{"label": "Book on Aeroplan", "link": "https://www.aircanada.com/aeroplan", "primary": true}]
+}
