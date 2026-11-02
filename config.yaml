@@ -1,10 +1,10 @@
 # Trip config. Edit this file for a new trip. Nothing personal belongs here:
 # balances and tokens live in GitHub secrets.
 
-origins: [DAD, SGN, HAN, BKK, SIN, HKG, TPE, ICN, TYO]
-destinations: [SFO, SJC, OAK, LAX, SEA]
+origins: [TYO]
+destinations: [HNL]
 start_date: "2027-01-04"
-end_date: "2027-01-11"
+end_date: "2027-01-06"
 cabins: [business, premium, economy]
 
 # Party rule: a find passes with party_size seats in business or premium,
@@ -16,7 +16,7 @@ split_rule:
 
 # Also alert when all seats are available in plain economy (lowest priority tier).
 # Set to false once you have booked economy and only want upgrades.
-alert_economy: true
+alert_economy: false
 economy_digest_size: 5   # best N economy finds per message, one line each
 
 # Miles per person. Above these the find is logged but never sent.
