@@ -86,6 +86,9 @@ def compute(verdicts: dict[str, Verdict], state: State, now: datetime,
         elif not was_real:
             prior.last_pinged = now_s
             changes.changed.append(Change(aid, verdict, prior, "seat count now confirmed"))
+        elif prior.kind == "economy" and verdict.kind in ("full_premium", "split"):
+            prior.last_pinged = now_s
+            changes.changed.append(Change(aid, verdict, prior, "premium seats opened on this date"))
         elif verdict.cabin != prior.cabin or prior.miles - verdict.miles >= price_drop_alert:
             prior.last_pinged = now_s
             changes.changed.append(Change(aid, verdict, prior,

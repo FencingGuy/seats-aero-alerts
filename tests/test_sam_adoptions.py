@@ -88,3 +88,26 @@ def test_priority_sort_puts_united_last():
     text = "\n".join(msgs)
     assert text.index("Aeroplan") < text.index("United")
     assert "dynamic pricing" in text
+
+
+def test_economy_tier_when_enabled():
+    c = base_cfg()
+    c.alert_economy = True
+    v = evaluate(rec(Y=4, Ym="38000"), c)
+    assert v is not None and v.kind == "economy" and v.seats == 4
+    c.alert_economy = False
+    assert evaluate(rec(Y=4, Ym="38000"), c) is None
+
+
+def test_economy_never_outranks_premium():
+    c = base_cfg()
+    c.alert_economy = True
+    v = evaluate(rec(J=3, Jm="95000", Y=5, Ym="30000"), c)
+    assert v.kind == "full_premium"
+
+
+def test_economy_to_premium_upgrade_pings():
+    s = State()
+    compute({"a": Verdict("economy", "economy", 4, 38000)}, s, T0)
+    ch = compute({"a": Verdict("full_premium", "business", 3, 95000)}, s, T0 + timedelta(hours=1))
+    assert [x.availability_id for x in ch.changed] == ["a"]

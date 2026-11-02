@@ -129,11 +129,13 @@ def format_changes(changes: Changes, trips_by_id: dict[str, dict], cfg: Config,
         blocks.append(f"<b>Already open when the watcher started: {len(changes.new)} find(s).</b> "
                       "From now on you only hear about changes.")
     def order(ch: Change):
-        kind_rank = {"full_premium": 0, "split": 1}.get(ch.verdict.kind, 2)
+        kind_rank = {"full_premium": 0, "split": 1, "possible": 2}.get(ch.verdict.kind, 3)
         return (kind_rank, ch.seen.date, program_rank(ch.seen.program, cfg), ch.verdict.miles)
 
     for ch in sorted(changes.new, key=order):
-        label = "Possible" if ch.verdict.kind == "possible" else ("Open" if baseline else "New")
+        label = ("Possible" if ch.verdict.kind == "possible"
+                 else "Economy" if ch.verdict.kind == "economy"
+                 else "Open" if baseline else "New")
         blocks.append(_find_block(ch, cfg, trips_by_id.get(ch.availability_id), balances, label))
     for ch in changes.back:
         blocks.append(_find_block(ch, cfg, trips_by_id.get(ch.availability_id), balances, "Back"))

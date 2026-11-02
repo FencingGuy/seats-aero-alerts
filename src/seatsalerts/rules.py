@@ -12,7 +12,7 @@ PREMIUM_CABINS = ("business", "premium")
 
 @dataclass
 class Verdict:
-    kind: Literal["full_premium", "split", "possible"]
+    kind: Literal["full_premium", "split", "possible", "economy"]
     cabin: str
     seats: int | None
     miles: int
@@ -87,4 +87,14 @@ def evaluate(record: dict, cfg: Config) -> Verdict | None:
                 and economy_seats >= need_economy and economy_under):
             return Verdict("split", cabin, seats, miles,
                            [f"{need_premium} {cabin} + {need_economy} economy"], **extra)
-    return possible
+    if possible:
+        return possible
+    if (cfg.alert_economy and economy_ok and economy_seats is not None
+            and economy_seats >= cfg.party_size and economy_under):
+        tax_usd, tax_native = taxes_usd(record, "Y", cfg)
+        if tax_usd is None or tax_usd <= cfg.max_taxes_usd:
+            return Verdict("economy", "economy", economy_seats, economy_miles,
+                           taxes_usd=tax_usd, taxes_native=tax_native,
+                           direct=bool(record.get("YDirect")),
+                           updated_at=str(record.get("UpdatedAt") or ""))
+    return None

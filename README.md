@@ -5,6 +5,7 @@ A small watcher that checks seats.aero every 6 minutes, around the clock, and se
 ## What it sends
 
 - **New:** a find that fits the party rule (all seats in business or premium economy, or one premium seat plus two economy seats on the same flight) at or under the miles ceiling and the cash surcharge cap. Includes the date, route, program (with a note if it is a favored program or a dynamic-pricing one), miles per person and for the party, surcharges, the first few flight options, which points cover it (card points, your own airline miles, or a same-alliance partner), how old the seats.aero data is, a link to the exact search, and a link to the program's booking site.
+- **Economy:** all seats available in plain economy under its own ceiling, lowest priority. Useful for booking a floor now and upgrading later. Turn off with `alert_economy: false` once you have booked.
 - **Possible:** same, but the program does not publish seat counts (United and American hide them). Check before you trust it. Repeats at most once a day.
 - **Back:** a find that went away has reappeared.
 - **Update:** the price dropped by 5,000 or more, the cabin changed, or a "possible" find now shows a real seat count.

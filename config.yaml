@@ -14,6 +14,10 @@ split_rule:
   premium: 1
   economy: 2
 
+# Also alert when all seats are available in plain economy (lowest priority tier).
+# Set to false once you have booked economy and only want upgrades.
+alert_economy: true
+
 # Miles per person. Above these the find is logged but never sent.
 ceilings:
   business: 110000
