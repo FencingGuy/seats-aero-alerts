@@ -17,6 +17,25 @@ class Verdict:
     seats: int | None
     miles: int
     reasons: list[str] = field(default_factory=list)
+    taxes_usd: float | None = None
+    taxes_native: str = ""
+    direct: bool = False
+    updated_at: str = ""
+
+
+def taxes_usd(record: dict, code: str, cfg: Config) -> tuple[float | None, str]:
+    """Surcharges per person in USD, plus a native-currency string. The API returns cents."""
+    raw = record.get(f"{code}TotalTaxes")
+    if raw in (None, "", 0, "0"):
+        return None, ""
+    try:
+        cents = int(float(str(raw).replace(",", "")))
+    except ValueError:
+        return None, ""
+    currency = str(record.get("TaxesCurrency") or "USD").upper()
+    native = cents / 100.0
+    usd = round(native * cfg.fx_to_usd.get(currency, 1.0), 2)
+    return usd, f"{native:,.0f} {currency}"
 
 
 def _miles(record: dict, code: str) -> int | None:
@@ -48,17 +67,24 @@ def evaluate(record: dict, cfg: Config) -> Verdict | None:
         available, seats, miles = _cabin(record, cabin)
         if not available or miles is None or miles > cfg.ceilings[cabin]:
             continue
+        code = CABIN_CODES[cabin]
+        tax_usd, tax_native = taxes_usd(record, code, cfg)
+        if tax_usd is not None and tax_usd > cfg.max_taxes_usd:
+            continue
+        extra = dict(taxes_usd=tax_usd, taxes_native=tax_native,
+                     direct=bool(record.get(f"{code}Direct")),
+                     updated_at=str(record.get("UpdatedAt") or ""))
         if seats is None:
             # Program hides seat counts (United, American, sometimes Aeroplan).
             possible = possible or Verdict("possible", cabin, None, miles,
-                                           ["seat count unknown"])
+                                           ["seat count unknown"], **extra)
             continue
         if seats >= cfg.party_size:
-            return Verdict("full_premium", cabin, seats, miles)
+            return Verdict("full_premium", cabin, seats, miles, **extra)
         need_premium = cfg.split_rule.get("premium", 1)
         need_economy = cfg.split_rule.get("economy", cfg.party_size - need_premium)
         if (seats >= need_premium and economy_ok and economy_seats is not None
                 and economy_seats >= need_economy and economy_under):
             return Verdict("split", cabin, seats, miles,
-                           [f"{need_premium} {cabin} + {need_economy} economy"])
+                           [f"{need_premium} {cabin} + {need_economy} economy"], **extra)
     return possible

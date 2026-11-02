@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import html
+from datetime import datetime, timezone
 from urllib.parse import urlencode
 
 from .config import Config
@@ -36,6 +37,41 @@ def _program(code: str) -> str:
     return esc(PROGRAM_NAMES.get(code, code))
 
 
+def program_rank(code: str, cfg: Config) -> int:
+    if code in cfg.priority_programs:
+        return 0
+    if code in cfg.deprioritize_programs:
+        return 2
+    return 1
+
+
+def badge(code: str, cfg: Config) -> str:
+    if code in cfg.priority_programs:
+        return "favored"
+    if code in cfg.deprioritize_programs:
+        return "dynamic pricing, usually poor value"
+    return ""
+
+
+def cache_age(updated_at: str, now: datetime | None = None) -> str:
+    """How old the seats.aero crawl is. Stale data is the usual reason a find is gone."""
+    if not updated_at:
+        return "cache age unknown"
+    try:
+        ts = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+    except ValueError:
+        return "cache age unknown"
+    now = now or datetime.now(timezone.utc)
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    mins = max(0, int((now - ts).total_seconds() // 60))
+    if mins < 60:
+        return f"seen by seats.aero {mins} min ago"
+    if mins < 48 * 60:
+        return f"seen by seats.aero {mins // 60}h ago"
+    return f"seen by seats.aero {mins // 1440}d ago"
+
+
 def _fmt_trips(trips: dict | None, limit: int = 3) -> list[str]:
     if not trips:
         return []
@@ -63,17 +99,26 @@ def _find_block(ch: Change, cfg: Config, trips: dict | None, balances: dict[str,
         seats = f"{v.seats} {CABIN_NAMES.get(v.cabin, v.cabin)} + economy for the rest"
     else:
         seats = f"{v.seats} seats"
-    body = [f"<b>{esc(label)}: {esc(s.origin)} to {esc(s.destination)}, {esc(s.date)}</b>"]
+    direct = ", nonstop" if v.direct else ""
+    body = [f"<b>{esc(label)}: {esc(s.origin)} to {esc(s.destination)}, {esc(s.date)}{direct}</b>"]
     if ch.note:
         body.append(esc(ch.note))
-    body.append(f"{CABIN_NAMES.get(v.cabin, v.cabin)} on {_program(s.program)}: {seats}")
-    body.append(f"{per:,} miles per person, {total:,} for {cfg.party_size}")
-    cov = coverage(s.program, total, balances, cfg.transfer_map)
+    b = badge(s.program, cfg)
+    body.append(f"{CABIN_NAMES.get(v.cabin, v.cabin)} on {_program(s.program)}"
+                f"{' (' + b + ')' if b else ''}: {seats}")
+    tax = f", taxes about {esc(v.taxes_native)} each" if v.taxes_native else ""
+    body.append(f"{per:,} miles per person, {total:,} for {cfg.party_size}{tax}")
+    cov = coverage(s.program, total, balances, cfg.transfer_map, cfg.onhand_airline, cfg.alliances)
     if cov:
         body.append(esc(cov))
     body.extend(_fmt_trips(trips))
+    body.append(esc(cache_age(v.updated_at)))
     link = html.escape(search_link(cfg, s.origin, s.destination, s.date, v.cabin), quote=True)
-    body.append(f'<a href="{link}">Open on seats.aero</a>')
+    links = [f'<a href="{link}">Open on seats.aero</a>']
+    site = cfg.booking_sites.get(s.program)
+    if site:
+        links.append(f'<a href="{html.escape(site, quote=True)}">Book on {_program(s.program)}</a>')
+    body.append(" | ".join(links))
     return "\n".join(body)
 
 
@@ -83,7 +128,11 @@ def format_changes(changes: Changes, trips_by_id: dict[str, dict], cfg: Config,
     if baseline and changes.new:
         blocks.append(f"<b>Already open when the watcher started: {len(changes.new)} find(s).</b> "
                       "From now on you only hear about changes.")
-    for ch in changes.new:
+    def order(ch: Change):
+        kind_rank = {"full_premium": 0, "split": 1}.get(ch.verdict.kind, 2)
+        return (kind_rank, ch.seen.date, program_rank(ch.seen.program, cfg), ch.verdict.miles)
+
+    for ch in sorted(changes.new, key=order):
         label = "Possible" if ch.verdict.kind == "possible" else ("Open" if baseline else "New")
         blocks.append(_find_block(ch, cfg, trips_by_id.get(ch.availability_id), balances, label))
     for ch in changes.back:

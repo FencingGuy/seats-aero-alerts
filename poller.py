@@ -18,6 +18,7 @@ def main() -> int:
     mode = ap.add_mutually_exclusive_group(required=True)
     mode.add_argument("--once", action="store_true", help="poll one time and exit")
     mode.add_argument("--loop", action="store_true", help="poll repeatedly for --minutes")
+    mode.add_argument("--sample", action="store_true", help="print one raw API record and exit")
     ap.add_argument("--minutes", type=int, default=58)
     ap.add_argument("--dry-run", action="store_true", help="log instead of sending to Telegram")
     ap.add_argument("--config", default="config.yaml")
@@ -31,7 +32,7 @@ def main() -> int:
         print("SEATS_AERO_API_KEY is not set", file=sys.stderr)
         return 2
     token, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
-    if not args.dry_run and not (token and chat):
+    if not (args.dry_run or args.sample) and not (token and chat):
         print("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required unless --dry-run", file=sys.stderr)
         return 2
 
@@ -41,6 +42,8 @@ def main() -> int:
     tg = TelegramClient(token or "", chat or "")
     poller = Poller(cfg, state, seats, tg, balances_env=os.environ.get("POINTS_BALANCES"),
                     dry_run=args.dry_run, state_path=args.state)
+    if args.sample:
+        return poller.sample()
     if args.once:
         poller.run_once()
     else:

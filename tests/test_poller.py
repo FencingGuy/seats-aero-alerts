@@ -88,10 +88,10 @@ def test_auth_error_sends_health_and_stops():
 def test_backoff_at_900_calls():
     seats = FakeSeats([])
     p, _, st = make(seats)
-    assert p.interval(day="2026-11-01") == 180
+    assert p.interval(day="2026-11-01") == CFG.poll_seconds
     for _ in range(900):
         st.calls.record(day="2026-11-01")
-    assert p.interval(day="2026-11-01") == 360
+    assert p.interval(day="2026-11-01") == CFG.backoff_seconds
 
 
 def test_daily_health_once_per_pacific_day():

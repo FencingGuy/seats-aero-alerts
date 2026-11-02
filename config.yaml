@@ -20,13 +20,73 @@ ceilings:
   premium: 75000
   economy: 45000
 
+# Cash surcharges per person, in USD. Non-USD taxes are converted with fx_to_usd.
+max_taxes_usd: 400
+
 min_cabin_pct: 75
 max_stops: 2
 
-poll_seconds: 180
-backoff_seconds: 360
+# seats.aero cached data refreshes only periodically, so 6 minutes is plenty.
+poll_seconds: 360
+backoff_seconds: 720
 backoff_at_calls: 900
 daily_budget: 700
+
+# Re-ping an already-reported find only when the price drops by at least this much.
+price_drop_alert: 5000
+
+# Programs to favor (sorted first, starred) and to show last (dynamic pricing).
+priority_programs: [alaska, aeroplan, flyingblue, virginatlantic, qatar]
+deprioritize_programs: [united, delta]
+
+# Rough FX for the surcharge cap. Approximate is fine for a threshold.
+fx_to_usd:
+  USD: 1.00
+  CAD: 0.73
+  EUR: 1.08
+  GBP: 1.27
+  AUD: 0.66
+  SGD: 0.74
+  HKD: 0.128
+  JPY: 0.0066
+  KRW: 0.00072
+  TWD: 0.031
+  THB: 0.029
+  VND: 0.00004
+  AED: 0.27
+  QAR: 0.275
+  TRY: 0.030
+
+# Where to book once seats.aero shows the award.
+booking_sites:
+  aeroplan: https://www.aircanada.com/aeroplan
+  united: https://www.united.com
+  virginatlantic: https://www.virginatlantic.com/flyingclub
+  flyingblue: https://www.flyingblue.com
+  singapore: https://www.singaporeair.com/krisflyer
+  qatar: https://www.qatarairways.com/privilege-club
+  alaska: https://www.alaskaair.com
+  american: https://www.aa.com
+  delta: https://www.delta.com
+  etihad: https://www.etihadguest.com
+  emirates: https://www.emirates.com/skywards
+  turkish: https://www.turkishairlines.com/miles-and-smiles
+  qantas: https://www.qantas.com/frequentflyer
+  finnair: https://www.finnair.com/plus
+  lufthansa: https://www.miles-and-more.com
+  asiamiles: https://www.cathaypacific.com/asiamiles
+  jal: https://www.jal.co.jp/jmb
+  eva: https://www.evaair.com/infinity-mileagelands
+
+# Airline miles Adam holds directly, as POINTS_BALANCES keys, mapped to the
+# seats.aero program they book in. Balances themselves stay in the secret.
+onhand_airline:
+  virgin: virginatlantic
+
+alliances:
+  star: [aeroplan, united, lufthansa, turkish, singapore, eva, lifemiles, eurobonus]
+  oneworld: [alaska, american, qatar, finnair, qantas, british, asiamiles, jal, iberia]
+  skyteam: [flyingblue, delta, virginatlantic, aeromexico, saudia]
 
 # Which card programs transfer to each mileage program (public knowledge).
 transfer_map:

@@ -1,13 +1,13 @@
 # seats.aero award alerts
 
-A small watcher that checks seats.aero every 3 minutes, around the clock, and sends a Telegram message only when award seats appear that fit the whole party at a sensible price. It runs for free on GitHub Actions and needs no computer left on at home.
+A small watcher that checks seats.aero every 6 minutes, around the clock, and sends a Telegram message only when award seats appear that fit the whole party at a sensible price. It runs for free on GitHub Actions and needs no computer left on at home.
 
 ## What it sends
 
-- **New:** a find that fits the party rule (all seats in business or premium economy, or one premium seat plus two economy seats on the same flight) at or under the price ceiling. Includes the date, route, program, miles per person and for the party, the first few flight options, which card program covers it, and a link to seats.aero.
+- **New:** a find that fits the party rule (all seats in business or premium economy, or one premium seat plus two economy seats on the same flight) at or under the miles ceiling and the cash surcharge cap. Includes the date, route, program (with a note if it is a favored program or a dynamic-pricing one), miles per person and for the party, surcharges, the first few flight options, which points cover it (card points, your own airline miles, or a same-alliance partner), how old the seats.aero data is, a link to the exact search, and a link to the program's booking site.
 - **Possible:** same, but the program does not publish seat counts (United and American hide them). Check before you trust it. Repeats at most once a day.
 - **Back:** a find that went away has reappeared.
-- **Update:** the price changed, or a "possible" find now shows a real seat count.
+- **Update:** the price dropped by 5,000 or more, the cabin changed, or a "possible" find now shows a real seat count.
 - **Gone:** a find you were told about no longer fits. Sent once per disappearance.
 - **Alive:** one line each morning with yesterday's API call count, so silence means something broke rather than "nothing found."
 - **Trouble:** a warning if seats.aero stops answering, the API key is rejected, or GitHub skipped an hour.
@@ -41,7 +41,9 @@ Secrets are encrypted and never appear in the code or the logs. Update `POINTS_B
 
 ### 4. Run it once by hand
 
-**Actions** tab > **Poll seats.aero** > **Run workflow**. Tick "dry run" the first time if you like; otherwise leave the defaults. Within a minute or two you should get an "Alive" message on Telegram. After that it runs itself every hour, polling every 3 minutes inside each run.
+**Actions** tab > **Poll seats.aero** > **Run workflow**. Tick "dry run" the first time if you like; otherwise leave the defaults. Within a minute or two you should get an "Alive" message on Telegram. After that it runs itself every hour, polling every 6 minutes inside each run.
+
+Cached seats.aero data only refreshes periodically, so polling faster than this mostly burns API calls without finding anything sooner.
 
 The very first poll sends one "Already open" summary of anything that qualifies right now, then only reports changes from the second poll on.
 
@@ -63,7 +65,13 @@ ceilings:
   business: 110000      # miles per person; above this, silence
   premium: 75000
   economy: 45000
+max_taxes_usd: 400      # cash surcharges per person; above this, silence
+poll_seconds: 360
+priority_programs: [alaska, aeroplan, flyingblue, virginatlantic, qatar]
+deprioritize_programs: [united, delta]
 ```
+
+`priority_programs` are listed first and marked favored; `deprioritize_programs` still appear but last, with a note about dynamic pricing.
 
 Airport codes can be single airports or seats.aero metro codes like `TYO` (all Tokyo airports) or `NYC`. For a new trip, change the origins, destinations, and dates. For a different party, change `party_size` and `split_rule`.
 
@@ -73,7 +81,7 @@ Actions tab > Poll seats.aero > the "..." menu > **Disable workflow**. Enable it
 
 ## Limits worth knowing
 
-- seats.aero Pro allows 1,000 API calls a day. At 3-minute polling this uses about 480 plus a handful per new find. The watcher slows itself to 6-minute polling if it ever reaches 900.
+- seats.aero Pro allows 1,000 API calls a day. At 6-minute polling this uses about 240 plus a few per new find, which leaves room to add a second trip to the config later. The watcher slows itself further if it ever reaches 900 calls in a day and stops at 700 by default.
 - seats.aero data is cached, not live. A find can be gone by the time you look. Book fast.
 - GitHub's scheduler sometimes starts an hourly run a few minutes late. The watcher warns you if a gap exceeds 90 minutes.
 
@@ -82,7 +90,8 @@ Actions tab > Poll seats.aero > the "..." menu > **Disable workflow**. Enable it
 ```
 pip install -r requirements.txt
 set SEATS_AERO_API_KEY=...          (PowerShell: $env:SEATS_AERO_API_KEY="...")
+python poller.py --sample
 python poller.py --once --dry-run
 ```
 
-`--dry-run` prints what it would send instead of sending it. `python -m pytest` runs the tests.
+`--sample` prints one raw record from seats.aero so you can eyeball the field names and tax units (one API call). `--dry-run` prints what it would send instead of sending it and leaves the saved state untouched. `python -m pytest` runs the tests.

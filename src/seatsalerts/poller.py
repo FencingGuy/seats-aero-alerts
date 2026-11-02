@@ -1,7 +1,9 @@
 """The loop: search, judge, diff, notify, remember. Health messages kept rare."""
 from __future__ import annotations
 
+import copy
 import html
+import json
 import logging
 import time
 from datetime import datetime, timedelta, timezone
@@ -53,8 +55,18 @@ class Poller:
         return False
 
     def _persist(self) -> None:
-        if self.state_path:
+        if self.state_path and not self.dry_run:
             save(self.state, self.state_path)
+
+    def sample(self) -> int:
+        """Print one raw record so the field names and tax units can be eyeballed. One API call."""
+        records = self.seats.search(self.cfg)
+        if not records:
+            print("No records returned for the configured search.")
+            return 0
+        print(json.dumps(records[0], indent=2, sort_keys=True))
+        print(f"\n{len(records)} records total. Check JTotalTaxes (cents) and TaxesCurrency above.")
+        return 0
 
     def interval(self, day: str | None = None) -> int:
         if self.state.calls.today_count(day) >= self.cfg.backoff_at_calls:
@@ -155,8 +167,11 @@ class Poller:
         log.info("%d records, %d pass the party rule", len(records), len(verdicts))
 
         baseline = not self.state.baselined
-        changes = compute(verdicts, self.state, now, baseline=False, meta=meta) if baseline \
-            else compute(verdicts, self.state, now, meta=meta)
+        if self.dry_run:
+            # A dry run must not change what the real run will consider new.
+            self.state = copy.deepcopy(self.state)
+        changes = compute(verdicts, self.state, now, meta=meta,
+                          price_drop_alert=self.cfg.price_drop_alert)
         if baseline:
             self.state.baselined = True
             if changes.new:

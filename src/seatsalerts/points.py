@@ -41,21 +41,44 @@ def _k(n: int) -> str:
     return f"{round(n / 1000)}k"
 
 
+def _alliance_of(program: str, alliances: dict[str, list[str]]) -> str | None:
+    for name, members in alliances.items():
+        if program in members:
+            return name
+    return None
+
+
 def coverage(program: str, miles_total: int, balances: dict[str, int],
-             transfer_map: dict[str, list[str]]) -> str:
-    """Plain-English affordability line. Never includes balance figures."""
+             transfer_map: dict[str, list[str]], onhand_airline: dict[str, str] | None = None,
+             alliances: dict[str, list[str]] | None = None) -> str:
+    """Plain-English affordability line. Never includes balance figures.
+
+    Card points transfer in; airline miles held directly count for their own program;
+    same-alliance airline miles get a partner-award hint."""
     if not balances:
         return ""
+    onhand_airline = onhand_airline or {}
+    alliances = alliances or {}
     partners = transfer_map.get(program)
     if partners is None:
         return "transfer partners unknown for this program"
-    if not partners:
-        return "no transfer partner among your cards"
     held = [(p, balances[p]) for p in partners if p in balances]
+    for key, prog in onhand_airline.items():
+        if prog == program and key in balances and key not in dict(held):
+            held.append((key, balances[key]))
+    hint = ""
+    alliance = _alliance_of(program, alliances)
+    if alliance:
+        same = [PRETTY.get(k, k) for k, prog in onhand_airline.items()
+                if k in balances and prog != program and prog in alliances.get(alliance, [])]
+        if same:
+            hint = f"; your {' or '.join(same)} miles may book this as a {alliance} partner award"
+    if not partners and not held:
+        return "no transfer partner among your cards" + hint
     if not held:
-        return "no balance in a partner program"
+        return "no balance in a partner program" + hint
     best = max(held, key=lambda x: x[1])
     covering = [PRETTY.get(p, p) for p, b in held if b >= miles_total]
     if covering:
-        return "covered by " + " or ".join(covering)
-    return f"short by {_k(miles_total - best[1])} via {PRETTY.get(best[0], best[0])}"
+        return "covered by " + " or ".join(covering) + hint
+    return f"short by {_k(miles_total - best[1])} via {PRETTY.get(best[0], best[0])}" + hint

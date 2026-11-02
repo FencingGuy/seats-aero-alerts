@@ -44,7 +44,8 @@ def _parse(s: str) -> datetime:
 
 
 def compute(verdicts: dict[str, Verdict], state: State, now: datetime,
-            baseline: bool = False, meta: dict[str, dict] | None = None) -> Changes:
+            baseline: bool = False, meta: dict[str, dict] | None = None,
+            price_drop_alert: int = 5000) -> Changes:
     """Mutates state. `meta` optionally carries route/date/program per availability id."""
     changes = Changes()
     now_s = _iso(now)
@@ -85,10 +86,10 @@ def compute(verdicts: dict[str, Verdict], state: State, now: datetime,
         elif not was_real:
             prior.last_pinged = now_s
             changes.changed.append(Change(aid, verdict, prior, "seat count now confirmed"))
-        elif verdict.miles != prior.miles or verdict.cabin != prior.cabin:
+        elif verdict.cabin != prior.cabin or prior.miles - verdict.miles >= price_drop_alert:
             prior.last_pinged = now_s
             changes.changed.append(Change(aid, verdict, prior,
-                                          f"price changed from {prior.miles:,} per person"))
+                                          f"was {prior.miles:,} per person"))
 
         prior.kind = verdict.kind
         prior.cabin = verdict.cabin
