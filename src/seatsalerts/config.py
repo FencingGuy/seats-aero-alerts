@@ -24,6 +24,7 @@ class Config:
     max_stops: int = 2
     max_taxes_usd: float = 400.0
     alert_economy: bool = False
+    economy_digest_size: int = 5
     price_drop_alert: int = 5000
     priority_programs: list[str] = field(default_factory=list)
     deprioritize_programs: list[str] = field(default_factory=list)
@@ -54,6 +55,7 @@ def load(path: str) -> Config:
         max_stops=int(raw.get("max_stops", 2)),
         max_taxes_usd=float(raw.get("max_taxes_usd", 400)),
         alert_economy=bool(raw.get("alert_economy", False)),
+        economy_digest_size=int(raw.get("economy_digest_size", 5)),
         price_drop_alert=int(raw.get("price_drop_alert", 5000)),
         priority_programs=list(raw.get("priority_programs") or []),
         deprioritize_programs=list(raw.get("deprioritize_programs") or []),

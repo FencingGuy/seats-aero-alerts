@@ -17,6 +17,7 @@ split_rule:
 # Also alert when all seats are available in plain economy (lowest priority tier).
 # Set to false once you have booked economy and only want upgrades.
 alert_economy: true
+economy_digest_size: 5   # best N economy finds per message, one line each
 
 # Miles per person. Above these the find is logged but never sent.
 ceilings:

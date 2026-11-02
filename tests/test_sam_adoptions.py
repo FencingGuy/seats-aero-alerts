@@ -111,3 +111,29 @@ def test_economy_to_premium_upgrade_pings():
     compute({"a": Verdict("economy", "economy", 4, 38000)}, s, T0)
     ch = compute({"a": Verdict("full_premium", "business", 3, 95000)}, s, T0 + timedelta(hours=1))
     assert [x.availability_id for x in ch.changed] == ["a"]
+
+
+def econ(i, miles, direct=False):
+    seen = SeenFind(f"e{i}", "economy", "economy", 4, miles, NOW, NOW, NOW,
+                    origin="SGN", destination="SFO", date=f"2027-01-{4 + i % 7:02d}", program="aeroplan")
+    return Change(f"e{i}", Verdict("economy", "economy", 4, miles, direct=direct), seen)
+
+
+def test_economy_digest_top_five_in_one_block():
+    finds = [econ(i, 30000 + i * 1000) for i in range(50)]
+    msgs = format_changes(Changes(new=finds), {}, CFG, {})
+    assert len(msgs) == 1
+    text = msgs[0]
+    assert "Economy: 50 date(s)" in text and "Best 5" in text
+    assert text.count("on Aeroplan") == 5
+    assert "and 45 more above 34,000 miles" in text
+    assert "30,000" in text and "35,000" not in text
+
+
+def test_economy_gone_is_silent_and_premium_blocks_stay_full():
+    gone = econ(1, 30000)
+    premium = change("aeroplan")
+    text = "
+".join(format_changes(Changes(new=[premium, econ(2, 30000)], gone=[gone]), {}, CFG, {}))
+    assert "Gone" not in text
+    assert "New: SGN to SFO" in text and "Economy: 1 date(s)" in text

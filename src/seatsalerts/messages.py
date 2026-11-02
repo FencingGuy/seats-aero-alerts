@@ -122,9 +122,29 @@ def _find_block(ch: Change, cfg: Config, trips: dict | None, balances: dict[str,
     return "\n".join(body)
 
 
+def _economy_digest(items: list[Change], cfg: Config, balances: dict[str, int]) -> str:
+    """Best N economy finds as one compact block, cheapest first, nonstop as a tiebreaker."""
+    items = sorted(items, key=lambda ch: (ch.verdict.miles, not ch.verdict.direct, ch.seen.date))
+    top = items[:cfg.economy_digest_size]
+    lines = [f"<b>Economy: {len(items)} date(s) with {cfg.party_size} seats. Best {len(top)}:</b>"]
+    for ch in top:
+        s, v = ch.seen, ch.verdict
+        link = html.escape(search_link(cfg, s.origin, s.destination, s.date, "economy"), quote=True)
+        nonstop = ", nonstop" if v.direct else ""
+        tax = f", {esc(v.taxes_native)} fees" if v.taxes_native else ""
+        lines.append(f'<a href="{link}">{esc(s.date)} {esc(s.origin)} to {esc(s.destination)}</a> '
+                     f'{v.miles:,} on {_program(s.program)}{nonstop}{tax}')
+    if len(items) > len(top):
+        lines.append(f"and {len(items) - len(top)} more above {top[-1].verdict.miles:,} miles")
+    return "
+".join(lines)
+
+
 def format_changes(changes: Changes, trips_by_id: dict[str, dict], cfg: Config,
                    balances: dict[str, int], baseline: bool = False) -> list[str]:
     blocks: list[str] = []
+    economy_new = [ch for ch in changes.new if ch.verdict.kind == "economy"]
+    premium_new = [ch for ch in changes.new if ch.verdict.kind != "economy"]
     if baseline and changes.new:
         blocks.append(f"<b>Already open when the watcher started: {len(changes.new)} find(s).</b> "
                       "From now on you only hear about changes.")
@@ -132,7 +152,7 @@ def format_changes(changes: Changes, trips_by_id: dict[str, dict], cfg: Config,
         kind_rank = {"full_premium": 0, "split": 1, "possible": 2}.get(ch.verdict.kind, 3)
         return (kind_rank, ch.seen.date, program_rank(ch.seen.program, cfg), ch.verdict.miles)
 
-    for ch in sorted(changes.new, key=order):
+    for ch in sorted(premium_new, key=order):
         label = ("Possible" if ch.verdict.kind == "possible"
                  else "Economy" if ch.verdict.kind == "economy"
                  else "Open" if baseline else "New")
@@ -144,7 +164,11 @@ def format_changes(changes: Changes, trips_by_id: dict[str, dict], cfg: Config,
     for ch in changes.possible_repeat:
         blocks.append(_find_block(ch, cfg, trips_by_id.get(ch.availability_id), balances,
                                   "Still possible"))
+    if economy_new:
+        blocks.append(_economy_digest(economy_new, cfg, balances))
     for ch in changes.gone:
+        if ch.seen.kind == "economy":
+            continue
         s = ch.seen
         blocks.append(f"Gone: {esc(s.origin)} to {esc(s.destination)}, {esc(s.date)}, "
                       f"{CABIN_NAMES.get(s.cabin, s.cabin)} on {_program(s.program)} "
