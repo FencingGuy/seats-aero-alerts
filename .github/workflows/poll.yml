@@ -21,6 +21,12 @@ jobs:
   poll:
     runs-on: ubuntu-latest
     timeout-minutes: 65
+    strategy:
+      fail-fast: false
+      matrix:
+        watch:
+          - { name: return, config: config.yaml }
+          - { name: outbound, config: config-outbound.yaml }
     steps:
       - uses: actions/checkout@v4
 
@@ -32,8 +38,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: state
-          key: poller-state-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: poller-state-
+          key: poller-${{ matrix.watch.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: poller-${{ matrix.watch.name }}-
 
       - run: pip install -r requirements.txt
 
@@ -51,11 +57,11 @@ jobs:
           if [ "$DRY_RUN" = "true" ]; then EXTRA="$EXTRA --dry-run"; fi
           if [ "$TRIGGER" = "workflow_dispatch" ]; then EXTRA="$EXTRA --hello"; fi
           echo "trigger=$TRIGGER extra flags=[$EXTRA]"
-          python poller.py --loop --minutes "${MINUTES:-58}" $EXTRA
+          python poller.py --loop --minutes "${MINUTES:-58}" $EXTRA             --config "${{ matrix.watch.config }}" --state "state/${{ matrix.watch.name }}.json"
 
       - name: Save state for the next run
         if: always()
         uses: actions/cache/save@v4
         with:
           path: state
-          key: poller-state-${{ github.run_id }}-${{ github.run_attempt }}
+          key: poller-${{ matrix.watch.name }}-${{ github.run_id }}-${{ github.run_attempt }}
