@@ -43,9 +43,15 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           POINTS_BALANCES: ${{ secrets.POINTS_BALANCES }}
+          MINUTES: ${{ github.event.inputs.minutes }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          TRIGGER: ${{ github.event_name }}
         run: |
-          python poller.py --loop --minutes "${{ github.event.inputs.minutes || '58' }}" \
-            ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+          EXTRA=""
+          if [ "$DRY_RUN" = "true" ]; then EXTRA="$EXTRA --dry-run"; fi
+          if [ "$TRIGGER" = "workflow_dispatch" ]; then EXTRA="$EXTRA --hello"; fi
+          echo "trigger=$TRIGGER extra flags=[$EXTRA]"
+          python poller.py --loop --minutes "${MINUTES:-58}" $EXTRA
 
       - name: Save state for the next run
         if: always()

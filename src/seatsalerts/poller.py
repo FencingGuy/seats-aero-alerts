@@ -185,6 +185,8 @@ class Poller:
     # -- the hour-long loop -------------------------------------------------
 
     def run_loop(self, minutes: int) -> None:
+        log.info("starting loop for %d minutes, polling every %ds, dry_run=%s",
+                 minutes, self.cfg.poll_seconds, self.dry_run)
         deadline = time.monotonic() + minutes * 60
         while not self.stopped:
             self.run_once()
