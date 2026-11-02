@@ -1,7 +1,7 @@
 # Trip config. Edit this file for a new trip. Nothing personal belongs here:
 # balances and tokens live in GitHub secrets.
 
-origins: [TYO, OSA]
+origins: [TYO]
 destinations: [HNL]
 start_date: "2027-01-04"
 end_date: "2027-01-06"
