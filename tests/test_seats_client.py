@@ -51,10 +51,11 @@ def test_search_sends_required_params(monkeypatch):
     p = calls[0]["params"]
     assert calls[0]["url"] == "https://seats.aero/partnerapi/search"
     assert calls[0]["headers"]["Partner-Authorization"] == "secret-key"
-    assert p["origin_airport"].startswith("DAD,SGN,HAN")
-    assert p["destination_airport"] == "SFO,SJC,OAK,LAX,SEA"
-    assert p["cabins"] == "business,premium,economy"
-    assert p["start_date"] == "2027-01-04" and p["end_date"] == "2027-01-11"
+    cfg = load("config.yaml")
+    assert p["origin_airport"] == ",".join(cfg.origins)
+    assert p["destination_airport"] == ",".join(cfg.destinations)
+    assert p["cabins"] == ",".join(cfg.cabins)
+    assert p["start_date"] == cfg.start_date and p["end_date"] == cfg.end_date
     assert p["min_cabin_pct"] == 75 and p["take"] == 1000
 
 
