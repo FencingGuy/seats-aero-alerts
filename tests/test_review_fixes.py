@@ -217,3 +217,13 @@ def test_empty_response_with_known_finds_does_not_send_gone():
     seats.pages = []
     p.run_once(now=T0 + timedelta(minutes=3))
     assert not any("Gone" in m for m in tg.sent)
+
+
+def test_failed_health_send_is_retried_next_poll():
+    p, tg, st = make(Seats(pages=[]), tg=Tg(fail_times=3))
+    st.last_daily_health = "2026-10-31"
+    p.run_once(now=T0)
+    assert st.last_daily_health == "2026-10-31"
+    tg.fail_times = 0
+    p.run_once(now=T0 + timedelta(minutes=6))
+    assert any("Alive" in m for m in tg.sent) and st.last_daily_health == "2026-11-01"

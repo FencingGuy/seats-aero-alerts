@@ -82,15 +82,15 @@ class Poller:
                            f"between polls. GitHub may have delayed or skipped a run.")
         if self.state.last_daily_health != day:
             used = self.state.calls.today_count(today_key(now - timedelta(days=1)))
-            self._send(f"Alive. {used} seats.aero calls used yesterday, watching "
-                       f"{self.cfg.start_date} to {self.cfg.end_date}.")
-            self.state.last_daily_health = day
+            if self._send(f"Alive. {used} seats.aero calls used yesterday, watching "
+                          f"{self.cfg.start_date} to {self.cfg.end_date}."):
+                self.state.last_daily_health = day
         if (not self.balances or self.balance_problems) and not self.state.balances_warned:
             detail = "; ".join(html.escape(p) for p in self.balance_problems) or "it is not set"
-            self._send(f"Note: POINTS_BALANCES could not be fully read ({detail}). "
-                       f"Use the form bilt=100000,chase=200000 with no commas inside numbers. "
-                       f"Messages will skip or misjudge the 'covered by' line until fixed.")
-            self.state.balances_warned = True
+            if self._send(f"Note: POINTS_BALANCES could not be fully read ({detail}). "
+                          f"Use the form bilt=100000,chase=200000 with no commas inside numbers. "
+                          f"Messages will skip or misjudge the 'covered by' line until fixed."):
+                self.state.balances_warned = True
 
     def _notify(self, changes: Changes, baseline: bool) -> None:
         trips = {}
