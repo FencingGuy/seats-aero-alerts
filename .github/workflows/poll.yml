@@ -2,7 +2,9 @@ name: Poll seats.aero
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    # GitHub drops many top-of-hour schedules; fire off-peak and often.
+    # Concurrency below keeps only one run going plus one queued.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
     inputs:
       minutes:
