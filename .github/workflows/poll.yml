@@ -14,6 +14,10 @@ on:
         description: "Log only, send nothing to Telegram"
         type: boolean
         default: false
+      hello:
+        description: "Send the Telegram hello message"
+        type: boolean
+        default: true
 
 concurrency:
   group: poller
@@ -54,10 +58,11 @@ jobs:
           MINUTES: ${{ github.event.inputs.minutes }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
           TRIGGER: ${{ github.event_name }}
+          HELLO: ${{ github.event.inputs.hello }}
         run: |
           EXTRA=""
           if [ "$DRY_RUN" = "true" ]; then EXTRA="$EXTRA --dry-run"; fi
-          if [ "$TRIGGER" = "workflow_dispatch" ]; then EXTRA="$EXTRA --hello"; fi
+          if [ "$TRIGGER" = "workflow_dispatch" ] && [ "$HELLO" != "false" ]; then EXTRA="$EXTRA --hello"; fi
           echo "trigger=$TRIGGER extra flags=[$EXTRA]"
           python poller.py --loop --minutes "${MINUTES:-58}" $EXTRA             --config "${{ matrix.watch.config }}" --state "state/${{ matrix.watch.name }}.json"
 
