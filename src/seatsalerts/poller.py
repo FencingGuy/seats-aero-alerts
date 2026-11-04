@@ -82,8 +82,10 @@ class Poller:
                            f"between polls. GitHub may have delayed or skipped a run.")
         if self.state.last_daily_health != day:
             used = self.state.calls.today_count(today_key(now - timedelta(days=1)))
-            if self._send(f"Alive. {used} seats.aero calls used yesterday, watching "
-                          f"{self.cfg.start_date} to {self.cfg.end_date}."):
+            cabins = [c for c in ("business", "premium", "economy") if self.cfg.ceilings.get(c)]
+            route = f"{','.join(self.cfg.origins)} to {','.join(self.cfg.destinations)}"
+            if self._send(f"Alive: {route}, {self.cfg.start_date} to {self.cfg.end_date} "
+                          f"({', '.join(cabins)}). {used} seats.aero calls yesterday."):
                 self.state.last_daily_health = day
         if (not self.balances or self.balance_problems) and not self.state.balances_warned:
             detail = "; ".join(html.escape(p) for p in self.balance_problems) or "it is not set"

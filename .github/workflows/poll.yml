@@ -14,6 +14,10 @@ on:
         description: "Log only, send nothing to Telegram"
         type: boolean
         default: false
+      chained:
+        description: "Started automatically by the previous run (no hello message)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -58,10 +62,11 @@ jobs:
           MINUTES: ${{ github.event.inputs.minutes }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
           TRIGGER: ${{ github.event_name }}
+          CHAINED: ${{ github.event.inputs.chained }}
         run: |
           EXTRA=""
           if [ "$DRY_RUN" = "true" ]; then EXTRA="$EXTRA --dry-run"; fi
-          if [ "$TRIGGER" = "workflow_dispatch" ]; then EXTRA="$EXTRA --hello"; fi
+          if [ "$TRIGGER" = "workflow_dispatch" ] && [ "$CHAINED" != "true" ]; then EXTRA="$EXTRA --hello"; fi
           echo "trigger=$TRIGGER extra flags=[$EXTRA]"
           python poller.py --loop --minutes "${MINUTES:-345}" $EXTRA             --config "${{ matrix.watch.config }}" --state "state/${{ matrix.watch.name }}.json"
 
@@ -77,3 +82,12 @@ jobs:
         with:
           path: state
           key: poller-${{ matrix.watch.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      # GitHub drops many scheduled triggers, which left 2 to 5 hour gaps. Each run
+      # starts the next one itself so coverage is continuous; the schedule is a backup.
+      # Concurrency keeps it to one run at a time. To stop, disable the workflow.
+      - name: Start the next run
+        if: ${{ !cancelled() && matrix.watch.name == 'return' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run poll.yml --repo "${{ github.repository }}" -f chained=true || true
