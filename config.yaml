@@ -20,10 +20,12 @@ alert_economy: false
 economy_digest_size: 5   # best N economy finds per message, one line each
 
 # Miles per person. Above these the find is logged but never sent.
+# Premium economy on JL72 is the plan, so only business is worth a ping.
+# A ceiling of 0 means never alert on that cabin.
 ceilings:
   business: 110000
-  premium: 75000
-  economy: 45000
+  premium: 0
+  economy: 0
 
 # Cash surcharges per person, in USD. Non-USD taxes are converted with fx_to_usd.
 max_taxes_usd: 400
