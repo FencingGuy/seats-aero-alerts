@@ -105,7 +105,7 @@ def test_daily_health_once_per_pacific_day():
 
 def test_gap_over_90_minutes_sends_warning():
     p, tg, st = make(FakeSeats([]))
-    st.last_run_at = (T0 - timedelta(minutes=120)).isoformat()
+    st.last_run_at = (T0 - timedelta(minutes=200)).isoformat()
     p.run_once(now=T0)
     assert any("gap" in m.lower() for m in tg.sent)
 

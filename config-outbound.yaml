@@ -20,10 +20,12 @@ alert_economy: false
 economy_digest_size: 5   # best N economy finds per message, one line each
 
 # Miles per person. Above these the find is logged but never sent.
+# Premium economy is already booked (VN99), so only business is worth a ping.
+# A ceiling of 0 means never alert on that cabin.
 ceilings:
   business: 110000
-  premium: 75000
-  economy: 45000
+  premium: 0
+  economy: 0
 
 # Cash surcharges per person, in USD. Non-USD taxes are converted with fx_to_usd.
 max_taxes_usd: 400
@@ -34,8 +36,9 @@ max_stops: 2
 # seats.aero cached data refreshes only periodically, so 6 minutes is plenty.
 poll_seconds: 360
 backoff_seconds: 720
-backoff_at_calls: 900
-daily_budget: 700
+# Two watches share the 1,000/day API limit, so each gets under half.
+backoff_at_calls: 400
+daily_budget: 450
 
 # Re-ping an already-reported find only when the price drops by at least this much.
 price_drop_alert: 5000

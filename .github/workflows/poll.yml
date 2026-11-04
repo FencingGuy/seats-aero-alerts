@@ -9,11 +9,15 @@ on:
     inputs:
       minutes:
         description: "How long to keep polling (minutes)"
-        default: "58"
+        default: "345"
       dry_run:
         description: "Log only, send nothing to Telegram"
         type: boolean
         default: false
+
+permissions:
+  contents: read
+  actions: write
 
 concurrency:
   group: poller
@@ -22,7 +26,7 @@ concurrency:
 jobs:
   poll:
     runs-on: ubuntu-latest
-    timeout-minutes: 65
+    timeout-minutes: 358
     strategy:
       fail-fast: false
       matrix:
@@ -59,7 +63,13 @@ jobs:
           if [ "$DRY_RUN" = "true" ]; then EXTRA="$EXTRA --dry-run"; fi
           if [ "$TRIGGER" = "workflow_dispatch" ]; then EXTRA="$EXTRA --hello"; fi
           echo "trigger=$TRIGGER extra flags=[$EXTRA]"
-          python poller.py --loop --minutes "${MINUTES:-58}" $EXTRA             --config "${{ matrix.watch.config }}" --state "state/${{ matrix.watch.name }}.json"
+          python poller.py --loop --minutes "${MINUTES:-345}" $EXTRA             --config "${{ matrix.watch.config }}" --state "state/${{ matrix.watch.name }}.json"
+
+      - name: Keep the schedule from being auto-disabled after 60 idle days
+        if: always() && matrix.watch.name == 'return'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/poll.yml/enable" || true
 
       - name: Save state for the next run
         if: always()

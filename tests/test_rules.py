@@ -67,3 +67,11 @@ def test_premium_economy_three_passes():
 
 def test_split_economy_over_ceiling_fails():
     assert evaluate(rec(J=1, Jm="95000", Y=2, Ym="90000"), cfg()) is None
+
+
+def test_zero_ceiling_disables_cabin():
+    c = cfg()
+    c.ceilings = {"business": 110000, "premium": 0, "economy": 0}
+    assert evaluate(rec(W=3, Wm="70000"), c) is None
+    assert evaluate(rec(J=1, Jm="95000", Y=2, Ym="30000"), c) is None
+    assert evaluate(rec(J=3, Jm="95000"), c).cabin == "business"

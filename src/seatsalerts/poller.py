@@ -19,7 +19,7 @@ from .state import State, save
 
 log = logging.getLogger("seatsalerts")
 FAILURES_BEFORE_WARNING = 3
-GAP_WARNING = timedelta(minutes=90)
+GAP_WARNING = timedelta(hours=3)
 SEND_ATTEMPTS = 3
 
 

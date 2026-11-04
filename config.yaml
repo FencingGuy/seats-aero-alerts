@@ -34,8 +34,9 @@ max_stops: 2
 # seats.aero cached data refreshes only periodically, so 6 minutes is plenty.
 poll_seconds: 360
 backoff_seconds: 720
-backoff_at_calls: 900
-daily_budget: 700
+# Two watches share the 1,000/day API limit, so each gets under half.
+backoff_at_calls: 400
+daily_budget: 450
 
 # Re-ping an already-reported find only when the price drops by at least this much.
 price_drop_alert: 5000
