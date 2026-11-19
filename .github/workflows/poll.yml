@@ -35,7 +35,6 @@ jobs:
       fail-fast: false
       matrix:
         watch:
-          - { name: return, config: config.yaml }
           - { name: outbound, config: config-outbound.yaml }
     steps:
       - uses: actions/checkout@v4
@@ -71,7 +70,7 @@ jobs:
           python poller.py --loop --minutes "${MINUTES:-345}" $EXTRA             --config "${{ matrix.watch.config }}" --state "state/${{ matrix.watch.name }}.json"
 
       - name: Keep the schedule from being auto-disabled after 60 idle days
-        if: always() && matrix.watch.name == 'return'
+        if: always() && matrix.watch.name == 'outbound'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/poll.yml/enable" || true
@@ -87,7 +86,7 @@ jobs:
       # starts the next one itself so coverage is continuous; the schedule is a backup.
       # Concurrency keeps it to one run at a time. To stop, disable the workflow.
       - name: Start the next run
-        if: ${{ !cancelled() && matrix.watch.name == 'return' }}
+        if: ${{ !cancelled() && matrix.watch.name == 'outbound' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run poll.yml --repo "${{ github.repository }}" -f chained=true || true
